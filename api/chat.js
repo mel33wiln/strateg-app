@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     }
 
     const body = {
-      model: 'openai/gpt-oss-20b',
+      model: 'llama-3.3-70b-versatile',
       messages: messages,
       temperature: 0.7,
       max_tokens: 2000
