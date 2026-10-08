@@ -188,11 +188,6 @@ for (let i = 0; i < tasks.length; i++) {
   try { results.push(extractJSON(r).content || r); } catch { results.push(r); }
   await new Promise(res => setTimeout(res, 1500));
 }
-      callAgent([
-        { role: 'system', content: prompts[i] + ' Верни JSON с полями title и content.' },
-        { role: 'user', content: 'Вопрос пользователя: ' + question + '\n\nТвоя задача: ' + task }
-      ], true).then(r => { try { return extractJSON(r).content || r; } catch { return r; } })
-    ));
 
     status.textContent = '⚖️ Судья...';
     const judge = await callAgent([
