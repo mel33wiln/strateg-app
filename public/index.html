@@ -219,7 +219,7 @@ document.getElementById('runBtn').addEventListener('click', async () => {
     const results = await Promise.all(tasks.map((task, i) =>
       callAgent([
         { role: 'system', content: prompts[i] + ' Верни JSON {"title":"...","content":"..."}.' },
-        { role: 'user', content: `Задача: ${task}\nВопрос: ${question}` }
+        { role: 'user', content: `Оцени:\n1. ${results[0]}\n2. ${results[1]}\n3. ${results[2]}\n4. ${results[3]}` }
       ], true).then(r => { try { return extractJSON(r).content || r; } catch { return r; } })
     ));
 
