@@ -196,6 +196,7 @@ for (let i = 0; i < tasks.length; i++) {
     ], true);
 
         const jd = extractJSON(judge);
+    console.log('СУДЬЯ ВЕРНУЛ:', JSON.stringify(jd));
     const jdRating = jd.rating ?? jd.rating_score ?? jd.score ?? '?';
     const jdComment = jd.comment ?? jd.explanation ?? jd.reasoning ?? jd.feedback ?? 'Оценка выполнена';
     document.getElementById('judgeContent').textContent = `Оценка: ${jdRating}/10. ${jdComment}`;
