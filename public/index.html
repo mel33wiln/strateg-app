@@ -195,7 +195,10 @@ for (let i = 0; i < tasks.length; i++) {
       { role: 'user', content: `Оцени:\n1. ${results[0]}\n2. ${results[1]}\n3. ${results[2]}\n4. ${results[3]}` }
     ], true);
 
-    const jd = extractJSON(judge);
+        const jd = extractJSON(judge);
+    const jdRating = jd.rating ?? jd.rating_score ?? jd.score ?? '?';
+    const jdComment = jd.comment ?? jd.explanation ?? jd.reasoning ?? jd.feedback ?? 'Оценка выполнена';
+    document.getElementById('judgeContent').textContent = `Оценка: ${jdRating}/10. ${jdComment}`;
 
     document.getElementById('marketContent').textContent = results[0];
     document.getElementById('risksContent').textContent = results[1];
