@@ -179,7 +179,15 @@ document.getElementById('runBtn').addEventListener('click', async () => {
       'Отвечай ТОЛЬКО на русском языке. Ни одного английского слова. Ты агент "Цифровизация". Подбери AI-инструменты и цифровые сервисы для этой бизнес-идеи в СНГ. Обязательно: 4-5 сервисов; для каждого — название, что делает, стоимость (в рублях, BYN или $, уточни валюту), ссылка или упоминание; отдавай приоритет бесплатным или дешёвым решениям, доступным в СНГ; если сервис недоступен в СНГ — не упоминай. Формат: маркированный список. Максимум 200 слов.'
     ];
 
-    const results = await Promise.all(tasks.map((task, i) =>
+    const results = [];
+for (let i = 0; i < tasks.length; i++) {
+  const r = await callAgent([
+    { role: 'system', content: prompts[i] + ' Верни JSON с полями title и content.' },
+    { role: 'user', content: 'Вопрос пользователя: ' + question + '\n\nТвоя задача: ' + tasks[i] }
+  ], true);
+  try { results.push(extractJSON(r).content || r); } catch { results.push(r); }
+  await new Promise(res => setTimeout(res, 1500));
+}
       callAgent([
         { role: 'system', content: prompts[i] + ' Верни JSON с полями title и content.' },
         { role: 'user', content: 'Вопрос пользователя: ' + question + '\n\nТвоя задача: ' + task }
