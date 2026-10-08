@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Стратег для бизнеса</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0a0a; color: #e5e5e5; min-height: 100vh;
+  display: flex; justify-content: center; align-items: center; padding: 20px;
+}
+.container {
+  max-width: 900px; width: 100%; background: #1a1a1a;
+  border-radius: 24px; padding: 40px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8); border: 1px solid #2a2a2a;
+}
+h1 {
+  font-size: 32px; font-weight: 700; margin-bottom: 8px;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.subtitle { color: #888; margin-bottom: 30px; font-size: 16px; }
+input[type="password"], textarea {
+  width: 100%; padding: 16px 20px; border-radius: 16px;
+  border: 1px solid #2a2a2a; background: #0d0d0d; color: #e5e5e5;
+  font-size: 16px; font-family: inherit;
+}
+input[type="password"] { margin-bottom: 16px; }
+textarea { resize: vertical; min-height: 80px; }
+input:focus, textarea:focus { outline: none; border-color: #60a5fa; }
+.btn {
+  margin-top: 16px; padding: 14px 32px; background: #2563eb;
+  color: #fff; border: none; border-radius: 40px; font-size: 16px;
+  font-weight: 600; cursor: pointer;
+}
+.btn:hover { background: #1d4ed8; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.status { margin-top: 12px; color: #94a3b8; font-size: 14px; min-height: 24px; }
+.result { margin-top: 30px; display: none; }
+.result.visible { display: block; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+  border-bottom: 1px solid #2a2a2a; padding-bottom: 8px; }
+.tab-btn {
+  background: transparent; border: none; color: #888;
+  padding: 8px 18px; border-radius: 20px; cursor: pointer;
+  font-size: 14px; transition: 0.2s;
+}
+.tab-btn.active { color: #fff; background: #2563eb; }
+.tab-content {
+  display: none; background: #0d0d0d; padding: 20px;
+  border-radius: 16px; white-space: pre-wrap; line-height: 1.6;
+  border: 1px solid #1f1f1f;
+}
+.tab-content.active { display: block; }
+.judge-box {
+  margin-top: 16px; padding: 16px 20px; background: #1a1f2e;
+  border-radius: 12px; border-left: 4px solid #60a5fa; color: #93bbfc;
+}
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🧠 Стратег для бизнеса</h1>
+  <p class="subtitle">6 агентов анализируют рынок, риски, стратегию и цифровизацию</p>
+
+  <div id="loginBlock">
+    <input type="password" id="passwordInput" placeholder="Введите пароль доступа" />
+    <button class="btn" id="loginBtn">🔓 Войти</button>
+    <div class="status" id="loginStatus"></div>
+  </div>
+
+  <div id="appBlock" class="hidden">
+    <textarea id="questionInput">Я открываю кофейню в Минске, как привлечь первых клиентов?</textarea>
+    <button class="btn" id="runBtn">🚀 Запустить анализ</button>
+    <div class="status" id="status"></div>
+
+    <div class="result" id="resultBlock">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="market">📊 Рынок</button>
+        <button class="tab-btn" data-tab="risks">⚠️ Риски</button>
+        <button class="tab-btn" data-tab="strategy">🎯 Стратегия</button>
+        <button class="tab-btn" data-tab="digital">🤖 Цифровизация</button>
+      </div>
+      <div class="tab-content active" id="tab-market"><div id="marketContent"></div></div>
+      <div class="tab-content" id="tab-risks"><div id="risksContent"></div></div>
+      <div class="tab-content" id="tab-strategy"><div id="strategyContent"></div></div>
+      <div class="tab-content" id="tab-digital"><div id="digitalContent"></div></div>
+      <div class="judge-box"><strong>⚖️ Судья:</strong> <span id="judgeContent"></span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;color:#555;font-size:13px;text-align:center;border-top:1px solid #1f1f1f;padding-top:20px;">
+    Работает через Groq
+  </div>
+</div>
+
+<script>
+let USER_PASSWORD = null;
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const pass = document.getElementById('passwordInput').value.trim();
+  if (!pass) return;
+  const st = document.getElementById('loginStatus');
+  st.textContent = '⏳ Проверяем...';
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Password': pass },
+      body: JSON.stringify({ messages: [{ role: 'user', content: 'ping' }] })
+    });
+    if (res.ok) {
+      USER_PASSWORD = pass;
+      document.getElementById('loginBlock').classList.add('hidden');
+      document.getElementById('appBlock').classList.remove('hidden');
+    } else {
+      const err = await res.json();
+      st.textContent = '❌ ' + (err.error || 'Ошибка');
+    }
+  } catch (e) {
+    st.textContent = '❌ ' + e.message;
+  }
+});
+
+async function callAgent(messages, jsonMode = false) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Password': USER_PASSWORD },
+    body: JSON.stringify({ messages, jsonMode })
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Ошибка сервера');
+  }
+  return (await res.json()).content;
+}
+
+function extractJSON(text) {
+  try { return JSON.parse(text); }
+  catch { const m = text.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error('Bad JSON'); }
+}
+
+document.getElementById('runBtn').addEventListener('click', async () => {
+  const question = document.getElementById('questionInput').value.trim();
+  if (!question) return;
+  const runBtn = document.getElementById('runBtn');
+  const status = document.getElementById('status');
+  runBtn.disabled = true;
+  runBtn.textContent = '⏳ Анализируем...';
+  status.textContent = '🧠 Оркестратор...';
+  document.getElementById('resultBlock').classList.remove('visible');
+
+  try {
+    const orch = await callAgent([
+      { role: 'system', content: 'Ты Оркестратор. Разбей вопрос на 4 подзадачи: "Анализ рынка СНГ", "Оценка рисков СНГ", "Разработка стратегии", "Цифровизация и AI". Верни JSON {"tasks": ["...","...","...","..."]}.' },
+      { role: 'user', content: question }
+    ], true);
+
+    const tasks = extractJSON(orch).tasks || ['Анализ рынка','Риски','Стратегия','Цифровизация'];
+    status.textContent = '🤖 4 агента...';
+
+    const prompts = [
+      'Ты агент "Рынок СНГ". Анализируй нишу: конкуренты, цены, спрос. Только факты. РФ, РБ, КЗ.',
+      'Ты агент "Риски СНГ". Оцени риски: курс, логистика, кадры. 3 главные угрозы.',
+      'Ты агент "Стратегия". Дай 3 шага на завтра. Цифры, сроки.',
+      'Ты агент "Цифровизация". AI-сервисы для ниши. Названия, цены.'
+    ];
+
+    const results = await Promise.all(tasks.map((task, i) =>
+      callAgent([
+        { role: 'system', content: prompts[i] + ' Верни JSON {"title":"...","content":"..."}.' },
+        { role: 'user', content: `Задача: ${task}\nВопрос: ${question}` }
+      ], true).then(r => { try { return extractJSON(r).content || r; } catch { return r; } })
+    ));
+
+    status.textContent = '⚖️ Судья...';
+    const judge = await callAgent([
+      { role: 'system', content: 'Ты строгий Судья. Оцени 1-10. JSON {"rating":N,"comment":"..."}.' },
+      { role: 'user', content: `Оцени:\n1. ${results[0]}\n2. ${results[1]}\n3. ${results[2]}\n4. ${results[3]}` }
+    ], true);
+    const jd = extractJSON(judge);
+
+    document.getElementById('marketContent').textContent = results[0];
+    document.getElementById('risksContent').textContent = results[1];
+    document.getElementById('strategyContent').textContent = results[2];
+    document.getElementById('digitalContent').textContent = results[3];
+    document.getElementById('judgeContent').textContent = `Оценка: ${jd.rating}/10. ${jd.comment}`;
+
+    document.getElementById('resultBlock').classList.add('visible');
+    status.textContent = '✅ Готово';
+  } catch (e) {
+    status.textContent = '❌ ' + e.message;
+  }
+  runBtn.disabled = false;
+  runBtn.textContent = '🚀 Запустить анализ';
+});
+</script>
+</body>
+</html>
